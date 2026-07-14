@@ -3,3 +3,5 @@ mediapipe
 pyautogui
 pynput
 numpy
+
+reflex==0.9.6.post1
