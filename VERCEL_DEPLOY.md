@@ -11,9 +11,27 @@ This guide explains how to deploy the Gescon Reflex frontend on Vercel while kee
 
 ---
 
-## 2. Deploying to Vercel (Recommended CLI Method)
+## 2. Option A: GitHub Git-Push Deployment (Recommended & Automatic)
 
-Because Vercel's build servers run only Node.js (and do not have Python/Reflex installed), the easiest way to deploy is to compile the site locally and push the static build directly to Vercel.
+We have configured the repository's `.gitignore` rules so that the final compiled static build folder (`.web/build/client/`) is committed and pushed to GitHub. This enables Vercel's automatic deployment on every push!
+
+### Steps to set up Vercel:
+1. Go to your [Vercel Dashboard](https://vercel.com/dashboard) and click **Add New > Project**.
+2. Import your GitHub repository: `sarthak-allawadhi/Gescon`.
+3. In the **Configure Project** settings, expand the **Build and Development Settings** and configure the following:
+   * **Root Directory:** Click "Edit" and select `.web/build/client` (or type `.web/build/client`).
+   * **Build Command:** Leave it empty (or toggled Off) so Vercel doesn't attempt to run a build command.
+   * **Output Directory:** Leave it empty (or toggled Off).
+4. Click **Deploy**.
+5. Vercel will serve your pre-compiled HTML and Javascript files directly at the root, and the site will render perfectly (no blank page!).
+
+*Note: Whenever you make changes locally, run the local compilation (`build-frontend.bat` or `reflex export --frontend-only`) and push the changes to GitHub to trigger Vercel updates automatically.*
+
+---
+
+## 3. Option B: Deploying via Vercel CLI (Manual)
+
+If you don't want to use GitHub and prefer deploying directly from your terminal:
 
 ### Prerequisites
 Make sure you have [Node.js](https://nodejs.org/) installed and the Vercel CLI:
@@ -22,26 +40,12 @@ npm install -g vercel
 ```
 
 ### Steps:
-1. **Compile the App:**
-   Double-click the `build-frontend.bat` script in the root directory (or run `python -m reflex export --frontend-only`). This creates the `.web/build/client` directory and the `frontend.zip` backup file.
-2. **Deploy to Vercel:**
-   Open your terminal in the project root and run the following command to deploy the static build:
+1. Run `build-frontend.bat` (or `python -m reflex export --frontend-only`) to compile.
+2. Run the deployment command in your terminal from the project root:
    ```bash
    vercel deploy --prod .web/build/client
    ```
-3. Follow the Vercel prompts to log in (if not already logged in) and set up your project. Vercel will deploy the site and give you a public URL (e.g., `gescon.vercel.app`).
-
----
-
-## 3. Alternative: Deploying via GitHub Actions
-
-If you want automated deployments every time you push to GitHub, you can use a GitHub Actions workflow.
-
-Create a `.github/workflows/deploy.yml` file with these steps:
-1. Setup Python & Node.js.
-2. Install Python requirements (`pip install -r requirements.txt`).
-3. Run `python -m reflex export --frontend-only`.
-4. Deploy the `.web/build/client` directory to Vercel using the [Vercel Action](https://github.com/marketplace/actions/vercel-action).
+3. Follow the Vercel prompts to deploy.
 
 ---
 

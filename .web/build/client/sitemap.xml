@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>http://localhost:3000/</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/gestures</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/demo</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3000/install</loc>
+  </url>
+</urlset>
