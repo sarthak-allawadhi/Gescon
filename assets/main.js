@@ -45,7 +45,7 @@ function startAmbientAnimation() {
     });
 
     ctx.lineWidth = 1.6;
-    ctx.strokeStyle = 'rgba(79,216,196,0.55)';
+    ctx.strokeStyle = 'rgba(0, 242, 254, 0.55)';
     connections.forEach(([a,b])=>{
       ctx.beginPath();
       ctx.moveTo(pts[a][0], pts[a][1]);
@@ -56,7 +56,7 @@ function startAmbientAnimation() {
     pts.forEach((p,i)=>{
       ctx.beginPath();
       ctx.arc(p[0], p[1], i===0?5:3.4, 0, Math.PI*2);
-      ctx.fillStyle = i===4 || i===8 ? '#FF8A5C' : '#4FD8C4';
+      ctx.fillStyle = i===4 || i===8 ? '#FF7B54' : '#00F2FE';
       ctx.fill();
     });
 
@@ -139,6 +139,13 @@ function initDemo() {
       const pinchVal = document.getElementById('pinchVal');
       const stateVal = document.getElementById('stateVal');
 
+      let jsPinchActive = false;
+      let jsPinchStartTime = 0;
+      let jsIsDragging = false;
+      let jsPrevFist = false;
+      let jsFistReleaseTime = 0;
+      let jsLastTypeTime = 0;
+
       const stream = await navigator.mediaDevices.getUserMedia({ video:{ width:640, height:480 } });
       videoEl.srcObject = stream;
       currentStream = stream;
@@ -163,7 +170,7 @@ function initDemo() {
           const lm = results.multiHandLandmarks[0];
 
           const HAND_CONNECTIONS = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20],[5,9],[9,13],[13,17]];
-          octx.strokeStyle = 'rgba(79,216,196,0.8)';
+          octx.strokeStyle = 'rgba(0, 242, 254, 0.8)';
           octx.lineWidth = 2;
           HAND_CONNECTIONS.forEach(([a,b])=>{
             octx.beginPath();
@@ -174,20 +181,126 @@ function initDemo() {
           lm.forEach((p,i)=>{
             octx.beginPath();
             octx.arc(p.x*curOverlay.width, p.y*curOverlay.height, i===4||i===8?5:3, 0, Math.PI*2);
-            octx.fillStyle = (i===4||i===8) ? '#FF8A5C' : '#4FD8C4';
+            octx.fillStyle = (i===4||i===8) ? '#FF7B54' : '#00F2FE';
             octx.fill();
           });
 
+          function getHandSize(landmarks) {
+            const wrist = landmarks[0];
+            const middleBase = landmarks[9];
+            return Math.hypot(wrist.x - middleBase.x, wrist.y - middleBase.y);
+          }
+
+          const handSize = getHandSize(lm);
           const pinchDist = dist(lm[4], lm[8]);
-          if(pinchVal) pinchVal.textContent = pinchDist.toFixed(3);
-          const isPinching = pinchDist < 0.055;
-          if(stateVal) stateVal.textContent = isPinching ? 'CLICK' : 'MOVE';
+          const normalizedPinch = handSize > 0 ? pinchDist / handSize : pinchDist;
+          if(pinchVal) pinchVal.textContent = normalizedPinch.toFixed(3);
+
+          // Detect fingers up
+          function isFingerUp(tipId) {
+            return lm[tipId].y < lm[tipId - 2].y;
+          }
+          function isThumbUp() {
+            return Math.abs(lm[4].x - lm[0].x) > Math.abs(lm[3].x - lm[0].x);
+          }
+          const fingerStates = [
+            isThumbUp(),
+            isFingerUp(8),
+            isFingerUp(12),
+            isFingerUp(16),
+            isFingerUp(20)
+          ];
+          const fingersUpCount = fingerStates.slice(1).filter(Boolean).length;
+
+          let currentState = "MOVE";
+
+          // 1. Scroll Mode (All 4 fingers up)
+          const scrollMode = (fingersUpCount === 4);
+          if (scrollMode) {
+            if (lm[8].y < 0.35) {
+              currentState = "SCROLL UP";
+            } else if (lm[8].y > 0.65) {
+              currentState = "SCROLL DOWN";
+            } else {
+              currentState = "SCROLL MODE";
+            }
+          }
+
+          // 2. Screenshot (Thumb + Pinky Pinch, others up)
+          const pinkyPinch = handSize > 0 ? dist(lm[4], lm[20]) / handSize : dist(lm[4], lm[20]);
+          if (pinkyPinch < 0.3 && fingerStates[1] && fingerStates[2] && fingerStates[3]) {
+            currentState = "SCREENSHOT";
+          }
+
+          // 3. Right Click (Thumb + Middle Pinch)
+          const middlePinchDist = handSize > 0 ? dist(lm[4], lm[12]) / handSize : dist(lm[4], lm[12]);
+          if (middlePinchDist < 0.25) {
+            currentState = "RIGHT CLICK";
+          }
+
+          // 4. Type Letter (Fist -> Open)
+          const isFist = (fingersUpCount === 0 && !fingerStates[0]);
+          const now = Date.now();
+          if (isFist) {
+            jsPrevFist = true;
+            jsFistReleaseTime = 0;
+            currentState = "FIST READY";
+          } else if (jsPrevFist) {
+            if (jsFistReleaseTime === 0) {
+              jsFistReleaseTime = now;
+            }
+            if (now - jsFistReleaseTime < 500) {
+              if (fingerStates[1] && !fingerStates[2] && !fingerStates[3] && !fingerStates[4]) {
+                currentState = "TYPE A";
+                if (now - jsLastTypeTime > 1000) { jsLastTypeTime = now; jsPrevFist = false; }
+              } else if (fingerStates[1] && fingerStates[2] && !fingerStates[3] && !fingerStates[4]) {
+                currentState = "TYPE B";
+                if (now - jsLastTypeTime > 1000) { jsLastTypeTime = now; jsPrevFist = false; }
+              } else if (fingerStates[1] && fingerStates[2] && fingerStates[3] && !fingerStates[4]) {
+                currentState = "TYPE C";
+                if (now - jsLastTypeTime > 1000) { jsLastTypeTime = now; jsPrevFist = false; }
+              }
+            } else {
+              jsPrevFist = false;
+            }
+          }
+
+          // 5. Left Click / Drag & Drop
+          if (normalizedPinch < 0.25) {
+            if (!jsPinchActive) {
+              jsPinchActive = true;
+              jsPinchStartTime = now;
+            } else if (!jsIsDragging && (now - jsPinchStartTime) >= 350) {
+              jsIsDragging = true;
+            }
+            if (currentState === "MOVE") {
+              currentState = jsIsDragging ? "DRAG" : "PINCH HOLD";
+            }
+          } else {
+            if (jsPinchActive) {
+              if (jsIsDragging) {
+                jsIsDragging = false;
+              } else {
+                currentState = "LEFT CLICK";
+              }
+              jsPinchActive = false;
+            }
+          }
+
+          if(stateVal) stateVal.textContent = currentState;
+          
           if(cursorDot) {
+            const isPinching = (currentState === "LEFT CLICK" || currentState === "DRAG" || currentState === "PINCH HOLD");
             cursorDot.classList.toggle('clicking', isPinching);
-            const nx = 1 - lm[8].x;
-            const ny = lm[8].y;
-            cursorDot.style.left = (nx*100)+'%';
-            cursorDot.style.top = (ny*100)+'%';
+            
+            // Freeze cursor during aim (short index pinch) or right pinch
+            const freezeCursor = (jsPinchActive && !jsIsDragging) || (middlePinchDist < 0.25);
+            if (!freezeCursor) {
+              const nx = 1 - lm[8].x;
+              const ny = lm[8].y;
+              cursorDot.style.left = (nx*100)+'%';
+              cursorDot.style.top = (ny*100)+'%';
+            }
           }
         } else {
           if(pinchVal) pinchVal.textContent = '—';

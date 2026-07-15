@@ -48,19 +48,27 @@ hands = mp_hands.Hands(
 )
 
 # ──────────────────────────────────────────────
-#  Webcam Setup
+#  Webcam Setup (Auto-Discovery)
 # ──────────────────────────────────────────────
-cap = cv.VideoCapture(0)
-# If camera doesn't open with 0, try changing to 1 (for external / iPhone Continuity Camera)
+cap = None
+for index in [0, 1, 2]:
+    print(f"Trying camera index {index}...")
+    temp_cap = cv.VideoCapture(index)
+    if temp_cap.isOpened():
+        ret, frame = temp_cap.read()
+        if ret:
+            cap = temp_cap
+            print(f"Successfully opened camera index {index}!")
+            break
+        temp_cap.release()
+
+if cap is None:
+    print("ERROR: No working camera could be opened!")
+    exit()
 
 cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
 cap.set(cv.CAP_PROP_FPS, 30)
-
-if not cap.isOpened():
-    print("ERROR: Camera could not be opened!")
-    print("Try changing cv.VideoCapture(0) to cv.VideoCapture(1)")
-    exit()
 
 # ──────────────────────────────────────────────
 #  Screen & Cursor Configuration
@@ -86,14 +94,21 @@ click_cooldown = 0.5
 freeze_cursor = False
 scroll_mode = False
 
-# Screenshot cooldown (prevent rapid-fire screenshots)
-last_screenshot_time = 0
-SCREENSHOT_COOLDOWN = 2.0
+# Left Click & Drag State Machine
+pinch_active = False
+pinch_start_time = 0
+is_dragging = False
+
+# Right Click State
+right_pinch_active = False
+right_pinch_start_time = 0
 
 # Type gesture state
+fist_release_time = 0
 last_type_time = 0
 TYPE_COOLDOWN = 1.0
 prev_fist = False   # Track if we were in a fist on the previous frame
+
 
 # FPS counter
 fps_time = t.time()
@@ -207,36 +222,78 @@ while True:
         fingers_up_count = sum(finger_states[1:])  # Exclude thumb for scroll/type detection
 
         # ══════════════════════════════════════
-        #  GESTURE 1: Click (Thumb + Index Pinch)
+        #  GESTURE 1: Left Click & Drag State Machine
         # ══════════════════════════════════════
         pinch_dist = get_pinch_distance(hand_landmarks, 4, 8)  # thumb tip to index tip
         
         if pinch_dist < 0.25:   # Normalized threshold (works at any distance!)
-            if not freeze_cursor:
-                freeze_cursor = True
-                click_times.append(t.time())
-
-                # Double Click: Two pinches within 0.4 seconds
-                if len(click_times) >= 2 and click_times[-1] - click_times[-2] < 0.4:
-                    pag.doubleClick()
-                    draw_status(frame, "DOUBLE CLICK", (10, 50), (0, 255, 255))
-                    click_times = []
-                else:
-                    pag.click()
-                    draw_status(frame, "SINGLE CLICK", (10, 50), (255, 255, 0))
+            if not pinch_active:
+                pinch_active = True
+                pinch_start_time = t.time()
+            elif not is_dragging and (t.time() - pinch_start_time) >= 0.35:
+                is_dragging = True
+                pag.mouseDown()
+                print("  Drag started")
+            
+            if is_dragging:
+                draw_status(frame, "DRAGGING", (10, 50), (255, 128, 0))
+            else:
+                draw_status(frame, "PINCH HOLD...", (10, 50), (255, 255, 100))
         else:
-            if freeze_cursor:
-                t.sleep(0.05)  # Small debounce on release
-            freeze_cursor = False
+            if pinch_active:
+                # Released pinch
+                if is_dragging:
+                    pag.mouseUp()
+                    is_dragging = False
+                    print("  Drag released")
+                else:
+                    # It was a short pinch -> left click
+                    click_times.append(t.time())
+                    # Double click: two pinches within 0.4s
+                    if len(click_times) >= 2 and (click_times[-1] - click_times[-2]) < 0.4:
+                        pag.doubleClick()
+                        draw_status(frame, "DOUBLE CLICK", (10, 50), (0, 255, 255))
+                        click_times = []
+                    else:
+                        pag.click()
+                        draw_status(frame, "SINGLE CLICK", (10, 50), (255, 255, 0))
+                pinch_active = False
+                t.sleep(0.05)  # Debounce on release
 
         # Clean old click times (prevent memory leak)
         if len(click_times) > 5:
             click_times = click_times[-2:]
 
+        # Freeze cursor only when we are waiting to see if pinch is a click or a drag, or right clicking
+        freeze_cursor = (pinch_active and not is_dragging) or right_pinch_active
+
+        # ══════════════════════════════════════
+        #  GESTURE: Right Click (Thumb + Middle Pinch)
+        # ══════════════════════════════════════
+        middle_pinch_dist = get_pinch_distance(hand_landmarks, 4, 12)  # thumb to middle tip
+        
+        if middle_pinch_dist < 0.25:
+            if not right_pinch_active:
+                right_pinch_active = True
+                right_pinch_start_time = t.time()
+            draw_status(frame, "RIGHT PINCH...", (10, 50), (100, 255, 100))
+        else:
+            if right_pinch_active:
+                hold_duration = t.time() - right_pinch_start_time
+                if hold_duration < 0.35:
+                    pag.rightClick()
+                    draw_status(frame, "RIGHT CLICK", (10, 50), (0, 255, 100))
+                right_pinch_active = False
+                t.sleep(0.05)
+
+
         # ══════════════════════════════════════
         #  GESTURE 2: Cursor Movement (Index Finger)
         # ══════════════════════════════════════
-        if not freeze_cursor:
+        # Restrict cursor movement to Point gesture (Index extended, others curled) or while active drag-and-drop
+        is_pointing = (finger_states[1] and not finger_states[2] and not finger_states[3] and not finger_states[4])
+        
+        if not freeze_cursor and (is_pointing or is_dragging):
             target_x, target_y = map_to_screen(index_tip.x, index_tip.y)
             
             # Apply smoothing (EMA)
@@ -288,30 +345,33 @@ while True:
         
         if is_fist:
             prev_fist = True
+            fist_release_time = 0
             draw_status(frame, "FIST READY...", (10, 170), (180, 180, 180))
         
-        elif prev_fist and (t.time() - last_type_time) > TYPE_COOLDOWN:
-            # Transitioned from fist to open — check which fingers opened
-            if finger_states[1] and not finger_states[2] and not finger_states[3] and not finger_states[4]:
-                pag.press('a')
-                draw_status(frame, "TYPED: A", (10, 170), (255, 100, 255))
-                last_type_time = t.time()
-                prev_fist = False
+        elif prev_fist:
+            if fist_release_time == 0:
+                fist_release_time = t.time()
             
-            elif finger_states[1] and finger_states[2] and not finger_states[3] and not finger_states[4]:
-                pag.press('b')
-                draw_status(frame, "TYPED: B", (10, 170), (255, 100, 255))
-                last_type_time = t.time()
-                prev_fist = False
-            
-            elif finger_states[1] and finger_states[2] and finger_states[3] and not finger_states[4]:
-                pag.press('c')
-                draw_status(frame, "TYPED: C", (10, 170), (255, 100, 255))
-                last_type_time = t.time()
-                prev_fist = False
-            
+            # Allow a 0.5-second transition window for the hand to fully open
+            if t.time() - fist_release_time < 0.5:
+                if (t.time() - last_type_time) > TYPE_COOLDOWN:
+                    if finger_states[1] and not finger_states[2] and not finger_states[3] and not finger_states[4]:
+                        pag.press('a')
+                        draw_status(frame, "TYPED: A", (10, 170), (255, 100, 255))
+                        last_type_time = t.time()
+                        prev_fist = False
+                    elif finger_states[1] and finger_states[2] and not finger_states[3] and not finger_states[4]:
+                        pag.press('b')
+                        draw_status(frame, "TYPED: B", (10, 170), (255, 100, 255))
+                        last_type_time = t.time()
+                        prev_fist = False
+                    elif finger_states[1] and finger_states[2] and finger_states[3] and not finger_states[4]:
+                        pag.press('c')
+                        draw_status(frame, "TYPED: C", (10, 170), (255, 100, 255))
+                        last_type_time = t.time()
+                        prev_fist = False
             else:
-                # If no recognized pattern, reset fist state
+                # Transition window expired, reset fist state
                 prev_fist = False
 
         # ── Draw finger state indicator ──
