@@ -116,6 +116,8 @@ fps_time = t.time()
 # Screenshots directory
 SCREENSHOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "screenshots")
 os.makedirs(SCREENSHOT_DIR, exist_ok=True)
+SCREENSHOT_COOLDOWN = 2.0
+last_screenshot_time = 0.0
 
 # ──────────────────────────────────────────────
 #  Helper Functions
