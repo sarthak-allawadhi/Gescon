@@ -80,7 +80,9 @@ let cameraRunning = false;
 async function loadScript(src){
   return new Promise((resolve,reject)=>{
     const s = document.createElement('script');
-    s.src = src; s.onload = resolve; s.onerror = reject;
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('Failed to load script: ' + src));
     document.head.appendChild(s);
   });
 }
@@ -215,9 +217,10 @@ function initDemo() {
       btn.textContent = 'Camera active';
     }catch(err){
       console.error(err);
-      statusText.textContent = 'Camera access denied or unavailable';
+      statusText.textContent = 'Error: ' + err.message + ' (' + err.name + ')';
       btn.textContent = 'Enable camera';
       btn.disabled = false;
+      alert('Camera Error: ' + err.toString());
     }
   });
 }
