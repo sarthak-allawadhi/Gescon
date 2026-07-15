@@ -1,7 +1,8 @@
-"""GestureMouse Reflex Web Application Implementation"""
+"""Gescon Reflex Web Application Implementation"""
 
 import subprocess
 import os
+import sys
 import signal
 import atexit
 import reflex as rx
@@ -63,7 +64,15 @@ class State(rx.State):
             try:
                 current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 project_py_path = os.path.join(current_dir, "Project.py")
-                venv_python = os.path.join(current_dir, "venv", "bin", "python")
+                
+                if os.name == 'nt':
+                    venv_python = os.path.join(current_dir, "venv", "Scripts", "python.exe")
+                else:
+                    venv_python = os.path.join(current_dir, "venv", "bin", "python")
+                
+                if not os.path.exists(venv_python):
+                    venv_python = sys.executable
+                
                 preexec = None if os.name == 'nt' else os.setsid
                 
                 proc = subprocess.Popen(
@@ -89,7 +98,7 @@ def header_section() -> rx.Component:
                 '<circle cx="13" cy="13" r="2.4" fill="var(--amber)"/>'
                 '</svg>'
             ),
-            rx.el.a("GestureMouse", href="/"),
+            rx.el.a("Gescon", href="/"),
             class_name="logo"
         ),
         rx.el.nav(
@@ -126,7 +135,7 @@ def index() -> rx.Component:
                 rx.el.div(
                     rx.el.div("Computer Vision · Python · MediaPipe", class_name="eyebrow"),
                     rx.el.h1("Control your cursor", rx.el.br(), "with your hand."),
-                    rx.el.p("GestureMouse tracks your hand through a webcam feed and maps finger positions and pinches directly to cursor movement, clicks, and scroll — no mouse required.", class_name="lede"),
+                    rx.el.p("Gescon tracks your hand through a webcam feed and maps finger positions and pinches directly to cursor movement, clicks, and scroll — no mouse required.", class_name="lede"),
                     rx.el.div(
                         rx.el.a("Try the live demo →", href="/demo", class_name="btn btn-primary"),
                         rx.el.a("Run it locally", href="/install", class_name="btn btn-ghost"),
@@ -154,7 +163,7 @@ def index() -> rx.Component:
             # CORE PORTALS (LINKS TO PAGES)
             rx.el.section(
                 rx.el.div("Explore Systems", class_name="eyebrow"),
-                rx.el.h2("Interact with GestureMouse."),
+                rx.el.h2("Interact with Gescon."),
                 rx.el.p("Explore the gesture mapping database, launch the camera tool directly in your browser, or install the native package for full OS system control.", class_name="lede"),
                 rx.el.div(
                     # Link 1: Gestures
@@ -253,11 +262,11 @@ def index() -> rx.Component:
                 )
             ),
 
-            # WHY GESTUREMOUSE
+            # WHY GESCON
             rx.el.section(
                 rx.el.div("System Benefits", class_name="eyebrow"),
                 rx.el.h2("Designed for speed & accessibility."),
-                rx.el.p("GestureMouse redefines desktop interaction without the need for expensive or bulky equipment.", class_name="lede"),
+                rx.el.p("Gescon redefines desktop interaction without the need for expensive or bulky equipment.", class_name="lede"),
                 rx.el.div(
                     # benefit 1
                     rx.el.div(
@@ -306,48 +315,72 @@ def gestures_page() -> rx.Component:
             rx.el.section(
                 rx.el.a("← Back to Homepage", href="/", class_name="back-btn"),
                 rx.el.div("Gesture Dictionary", class_name="eyebrow"),
-                rx.el.h2("One hand, five controls."),
-                rx.el.p("Each landmark relationship — the distance and position between fingertips — is translated into a distinct system-level action. Edit util.py to map your own gestures.", class_name="lede"),
+                rx.el.h2("One hand, eight controls."),
+                rx.el.p("Each landmark relationship — the distance and position between fingertips — is translated into a distinct system-level action. Customize settings inside Project.py.", class_name="lede"),
                 
                 rx.el.div(
                     # card 1
                     rx.el.div(
                         rx.el.span("☝️", class_name="glyph"),
                         rx.el.div("Point", class_name="gname"),
-                        rx.el.div("Index finger extended, others curled. Fingertip position drives cursor movement.", class_name="gdesc"),
+                        rx.el.div("Index finger extended, others curled. Drives smooth, responsive cursor movement.", class_name="gdesc"),
                         rx.el.div("→ MOVE CURSOR", class_name="gaction"),
                         class_name="gcard"
                     ),
                     # card 2
                     rx.el.div(
                         rx.el.span("🤏", class_name="glyph"),
-                        rx.el.div("Pinch", class_name="gname"),
-                        rx.el.div("Thumb and index tip come within a threshold distance of each other.", class_name="gdesc"),
+                        rx.el.div("Single Pinch", class_name="gname"),
+                        rx.el.div("Thumb and index fingertip pinch together. Simulates a standard single left click.", class_name="gdesc"),
                         rx.el.div("→ LEFT CLICK", class_name="gaction"),
                         class_name="gcard"
                     ),
                     # card 3
                     rx.el.div(
-                        rx.el.span("✌️", class_name="glyph"),
-                        rx.el.div("Two-finger pinch", class_name="gname"),
-                        rx.el.div("Thumb meets both index and middle fingertips simultaneously.", class_name="gdesc"),
-                        rx.el.div("→ RIGHT CLICK", class_name="gaction"),
+                        rx.el.span("⚡", class_name="glyph"),
+                        rx.el.div("Double Pinch", class_name="gname"),
+                        rx.el.div("Two quick thumb-and-index pinches within 0.4 seconds triggers double click.", class_name="gdesc"),
+                        rx.el.div("→ DOUBLE CLICK", class_name="gaction"),
                         class_name="gcard"
                     ),
                     # card 4
                     rx.el.div(
-                        rx.el.span("✊", class_name="glyph"),
-                        rx.el.div("Fist hold", class_name="gname"),
-                        rx.el.div("All fingertips curled toward the palm and held.", class_name="gdesc"),
-                        rx.el.div("→ DRAG", class_name="gaction"),
+                        rx.el.span("👆", class_name="glyph"),
+                        rx.el.div("Right Click", class_name="gname"),
+                        rx.el.div("Pinch thumb and middle finger together. Simulates a standard single right click.", class_name="gdesc"),
+                        rx.el.div("→ RIGHT CLICK", class_name="gaction"),
                         class_name="gcard"
                     ),
                     # card 5
                     rx.el.div(
-                        rx.el.span("🖐️", class_name="glyph"),
-                        rx.el.div("Open palm", class_name="gname"),
-                        rx.el.div("All five fingers extended and spread.", class_name="gdesc"),
-                        rx.el.div("→ RELEASE / IDLE", class_name="gaction"),
+                        rx.el.span("🎯", class_name="glyph"),
+                        rx.el.div("Drag & Drop", class_name="gname"),
+                        rx.el.div("Pinch thumb and index finger, then hold and move your hand to drag items.", class_name="gdesc"),
+                        rx.el.div("→ DRAG & DROP", class_name="gaction"),
+                        class_name="gcard"
+                    ),
+                    # card 6
+                    rx.el.div(
+                        rx.el.span("↕️", class_name="glyph"),
+                        rx.el.div("Scroll Mode", class_name="gname"),
+                        rx.el.div("Extend all 4 fingers. Upper zone of active area scrolls up, lower zone scrolls down.", class_name="gdesc"),
+                        rx.el.div("→ SCROLL UP / DOWN", class_name="gaction"),
+                        class_name="gcard"
+                    ),
+                    # card 7
+                    rx.el.div(
+                        rx.el.span("📸", class_name="glyph"),
+                        rx.el.div("Screenshot", class_name="gname"),
+                        rx.el.div("Pinch thumb and pinky finger (peace sign with pinky touch) to capture the screen.", class_name="gdesc"),
+                        rx.el.div("→ TAKE SCREENSHOT", class_name="gaction"),
+                        class_name="gcard"
+                    ),
+                    # card 8
+                    rx.el.div(
+                        rx.el.span("⌨️", class_name="glyph"),
+                        rx.el.div("Type Letter", class_name="gname"),
+                        rx.el.div("Make a fist, then release specific fingers: Index (types A), Index+Middle (types B), Index+Middle+Ring (types C).", class_name="gdesc"),
+                        rx.el.div("→ TYPE KEYBOARD A/B/C", class_name="gaction"),
                         class_name="gcard"
                     ),
                     class_name="gesture-grid"
@@ -373,7 +406,7 @@ def demo_page() -> rx.Component:
                 rx.el.p("This runs real-time on-device landmark recognition using WebAssembly. Allow camera permissions, point with your index finger inside the camera viewport, and pinch your thumb and index together to click.", class_name="lede"),
                 
                 rx.el.div(
-                    # Left Card: Browser Simulator Sandbox
+                    # Combined Sandbox & Native Control Card
                     rx.el.div(
                         # Toolbar
                         rx.el.div(
@@ -388,7 +421,7 @@ def demo_page() -> rx.Component:
                         ),
                         # Demo grid
                         rx.el.div(
-                            # Video box
+                            # Video box (Left column)
                             rx.el.div(
                                 rx.el.video(id="video", autoplay=True, playsinline=True, muted=True),
                                 rx.el.canvas(id="overlay"),
@@ -401,79 +434,92 @@ def demo_page() -> rx.Component:
                                 class_name="video-box",
                                 id="videoBox"
                             ),
-                            # Pad box
+                            # Stack box (Right column)
                             rx.el.div(
-                                rx.el.div("CURSOR PAD", class_name="pad-label"),
+                                # Pad box
                                 rx.el.div(
-                                    rx.el.div(id="cursorDot"),
-                                    class_name="pad",
-                                    id="pad"
+                                    rx.el.div("CURSOR PAD", class_name="pad-label"),
+                                    rx.el.div(
+                                        rx.el.div(id="cursorDot"),
+                                        class_name="pad",
+                                        id="pad"
+                                    ),
+                                    rx.el.div(
+                                        rx.el.span("PINCH_DIST: ", rx.el.b("—", id="pinchVal")),
+                                        rx.el.span("STATE: ", rx.el.b("IDLE", id="stateVal")),
+                                        class_name="readout"
+                                    ),
+                                    class_name="pad-box"
                                 ),
+                                # Spacer
+                                rx.el.div(style={"height": "24px"}),
+                                # Native Desktop OS Control Center
                                 rx.el.div(
-                                    rx.el.span("PINCH_DIST: ", rx.el.b("—", id="pinchVal")),
-                                    rx.el.span("STATE: ", rx.el.b("IDLE", id="stateVal")),
-                                    class_name="readout"
+                                    rx.el.div(
+                                        rx.el.div(
+                                            rx.el.div("Desktop OS Control", class_name="card-title"),
+                                            rx.cond(
+                                                State.desktop_control_active,
+                                                rx.el.span(
+                                                    rx.el.span(class_name="badge-dot"),
+                                                    "ACTIVE (OS Control)",
+                                                    class_name="status-badge active"
+                                                ),
+                                                rx.el.span(
+                                                    rx.el.span(class_name="badge-dot"),
+                                                    "DISCONNECTED",
+                                                    class_name="status-badge"
+                                                )
+                                            ),
+                                            class_name="control-status-box",
+                                            style={"borderBottom": "1px solid var(--line)", "paddingBottom": "16px", "marginBottom": "16px"}
+                                        ),
+                                        rx.el.div(
+                                            rx.el.p("Control your actual operating system cursor using the native Python engine. This launches the computer vision tracking process on your machine, opening the OpenCV tracking monitor window."),
+                                            rx.el.p("To configure gesture action mappings or threshold ratios, adjust settings inside Project.py and util.py."),
+                                            rx.el.p(
+                                                rx.el.span("🔌 ", style={"marginRight": "4px"}),
+                                                rx.el.b("Local Backend Required: "),
+                                                "This web interface connects to http://localhost:8000. Ensure you have the Python backend running locally to launch desktop control."
+                                            ),
+                                            rx.el.p(
+                                                rx.el.span("⚠️ ", style={"marginRight": "4px"}),
+                                                rx.el.b("Safety Fail-Safe: "),
+                                                "Move your hand to the top-left corner of the monitor screen at any time to trigger an emergency stop."
+                                            ),
+                                            class_name="control-body"
+                                        ),
+                                        class_name="control-header"
+                                    ),
+                                    rx.el.div(
+                                        rx.cond(
+                                            State.desktop_control_active,
+                                            rx.el.button(
+                                                "Terminate Control Session",
+                                                on_click=State.toggle_desktop_control,
+                                                class_name="btn btn-danger",
+                                                style={"width": "100%", "justifyContent": "center", "cursor": "pointer"}
+                                            ),
+                                            rx.el.button(
+                                                "Launch OS Controller",
+                                                on_click=State.toggle_desktop_control,
+                                                class_name="btn btn-primary",
+                                                style={"width": "100%", "justifyContent": "center", "cursor": "pointer"}
+                                            )
+                                        ),
+                                        class_name="control-actions",
+                                        style={"marginTop": "24px"}
+                                    ),
+                                    class_name="control-center",
+                                    style={"padding": "24px", "borderRadius": "10px", "border": "1px solid var(--line)", "background": "var(--panel-2)", "boxShadow": "none", "minHeight": "auto"}
                                 ),
-                                class_name="pad-box"
+                                style={"display": "flex", "flexDirection": "column"}
                             ),
                             class_name="demo-grid"
                         ),
                         class_name="demo-wrap",
                         style={"marginTop": "0"}
-                    ),
-                    # Right Card: Native Desktop OS Control Center
-                    rx.el.div(
-                        rx.el.div(
-                            rx.el.div(
-                                rx.el.div("Desktop OS Control", class_name="card-title"),
-                                rx.cond(
-                                    State.desktop_control_active,
-                                    rx.el.span(
-                                        rx.el.span(class_name="badge-dot"),
-                                        "ACTIVE (OS Control)",
-                                        class_name="status-badge active"
-                                    ),
-                                    rx.el.span(
-                                        rx.el.span(class_name="badge-dot"),
-                                        "DISCONNECTED",
-                                        class_name="status-badge"
-                                    )
-                                ),
-                                class_name="control-status-box"
-                            ),
-                            rx.el.div(
-                                rx.el.p("Control your actual operating system cursor using the native Python engine. This launches the computer vision tracking process on your machine, opening the OpenCV tracking monitor window."),
-                                rx.el.p("To configure gesture action mappings or threshold ratios, adjust settings inside Project.py and util.py."),
-                                rx.el.p(
-                                    rx.el.span("⚠️ ", style={"marginRight": "4px"}),
-                                    rx.el.b("Safety Fail-Safe: "),
-                                    "Move your hand to the top-left corner of the monitor screen at any time to trigger an emergency stop."
-                                ),
-                                class_name="control-body"
-                            ),
-                            class_name="control-header"
-                        ),
-                        rx.el.div(
-                            rx.cond(
-                                State.desktop_control_active,
-                                rx.el.button(
-                                    "Terminate Control Session",
-                                    on_click=State.toggle_desktop_control,
-                                    class_name="btn btn-danger",
-                                    style={"width": "100%", "justifyContent": "center", "cursor": "pointer"}
-                                ),
-                                rx.el.button(
-                                    "Launch OS Controller",
-                                    on_click=State.toggle_desktop_control,
-                                    class_name="btn btn-primary",
-                                    style={"width": "100%", "justifyContent": "center", "cursor": "pointer"}
-                                )
-                            ),
-                            class_name="control-actions"
-                        ),
-                        class_name="control-center"
-                    ),
-                    class_name="demo-split-grid"
+                    )
                 )
             )
         ),
@@ -492,18 +538,18 @@ def install_page() -> rx.Component:
             rx.el.section(
                 rx.el.a("← Back to Homepage", href="/", class_name="back-btn"),
                 rx.el.div("Get Started", class_name="eyebrow"),
-                rx.el.h2("Run native GestureMouse."),
+                rx.el.h2("Run native Gescon."),
                 rx.el.p("The desktop utility controls your actual OS cursor. Clone the source repository, setup a virtual env, install requirements, and execute the python script.", class_name="lede"),
                 
                 rx.el.div(
                     rx.el.span("# clone and enter the project", class_name="c-muted"), rx.el.br(),
-                    rx.el.span("git clone", class_name="c-text"), " https://github.com/your-username/gesture-mouse.git", rx.el.br(),
-                    rx.el.span("cd", class_name="c-text"), " gesture-mouse", rx.el.br(), rx.el.br(),
+                    rx.el.span("git clone", class_name="c-text"), " https://github.com/sarthak-allawadhi/Gescon.git", rx.el.br(),
+                    rx.el.span("cd", class_name="c-text"), " Gescon", rx.el.br(), rx.el.br(),
                     rx.el.span("# set up environment", class_name="c-muted"), rx.el.br(),
                     rx.el.span("python -m venv venv && venv\\Scripts\\activate", class_name="c-text"), rx.el.br(),
-                    rx.el.span("pip install", class_name="c-text"), " opencv-python mediapipe pyautogui numpy", rx.el.br(), rx.el.br(),
+                    rx.el.span("pip install -r requirements.txt", class_name="c-text"), rx.el.br(), rx.el.br(),
                     rx.el.span("# run it", class_name="c-muted"), rx.el.br(),
-                    rx.el.span("python", class_name="c-text"), " gesture_mouse.py",
+                    rx.el.span("python", class_name="c-text"), " Project.py",
                     class_name="code-block"
                 )
             )

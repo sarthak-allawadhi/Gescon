@@ -2,7 +2,11 @@ assets/external/
 *.py[cod]
 *.db
 .states
-.web
+.web/*
+!.web/build/
+.web/build/*
+!.web/build/client/
 __pycache__/
 venv/
 reflex.lock/
+frontend.zip
