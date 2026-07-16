@@ -106,6 +106,7 @@ def header_section() -> rx.Component:
             rx.el.a("Gestures", href="/gestures"),
             rx.el.a("Live Demo", href="/demo"),
             rx.el.a("Install", href="/install"),
+            rx.el.a("Roadmap", href="/roadmap"),
             rx.el.button(
                 rx.cond(State.theme == "light", "🌙 Dark", "☀️ Light"),
                 class_name="btn btn-ghost",
@@ -133,7 +134,6 @@ def index() -> rx.Component:
             # HERO
             rx.el.section(
                 rx.el.div(
-                    rx.el.div("Computer Vision · Python · MediaPipe", class_name="eyebrow"),
                     rx.el.h1("Control your cursor", rx.el.br(), "with your hand."),
                     rx.el.p("Gescon tracks your hand through a webcam feed and maps finger positions and pinches directly to cursor movement, clicks, and scroll — no mouse required.", class_name="lede"),
                     rx.el.div(
@@ -150,19 +150,9 @@ def index() -> rx.Component:
                 class_name="hero"
             ),
 
-            # STACK STRIP
-            rx.el.div(
-                rx.el.span(rx.el.b("Python")),
-                rx.el.span(rx.el.b("OpenCV")),
-                rx.el.span(rx.el.b("MediaPipe Hands")),
-                rx.el.span(rx.el.b("PyAutoGUI")),
-                rx.el.span(rx.el.b("NumPy")),
-                class_name="strip"
-            ),
 
             # CORE PORTALS (LINKS TO PAGES)
             rx.el.section(
-                rx.el.div("Explore Systems", class_name="eyebrow"),
                 rx.el.h2("Interact with Gescon."),
                 rx.el.p("Explore the gesture mapping database, launch the camera tool directly in your browser, or install the native package for full OS system control.", class_name="lede"),
                 rx.el.div(
@@ -214,7 +204,6 @@ def index() -> rx.Component:
 
             # HOW IT WORKS (STEPPER)
             rx.el.section(
-                rx.el.div("Technical Pipeline", class_name="eyebrow"),
                 rx.el.h2("How the mapping pipeline works."),
                 rx.el.p("A multi-stage pipelines translates physical hand joints into responsive, smooth cursor inputs.", class_name="lede"),
                 rx.el.div(
@@ -264,7 +253,6 @@ def index() -> rx.Component:
 
             # WHY GESCON
             rx.el.section(
-                rx.el.div("System Benefits", class_name="eyebrow"),
                 rx.el.h2("Designed for speed & accessibility."),
                 rx.el.p("Gescon redefines desktop interaction without the need for expensive or bulky equipment.", class_name="lede"),
                 rx.el.div(
@@ -273,7 +261,7 @@ def index() -> rx.Component:
                         rx.el.div("♿", class_name="why-icon"),
                         rx.el.div("Accessibility", class_name="why-title"),
                         rx.el.p("Provides an ergonomic, hands-free computer control option for users with physical mobility constraints.", class_name="why-desc"),
-                        class_name="why-card"
+                        class_name="why-card span-2"
                     ),
                     # benefit 2
                     rx.el.div(
@@ -294,7 +282,7 @@ def index() -> rx.Component:
                         rx.el.div("🎥", class_name="why-icon"),
                         rx.el.div("Zero Extras", class_name="why-title"),
                         rx.el.p("Works on any standard computer webcam — no specialized hardware, infrared cameras, or ring markers required.", class_name="why-desc"),
-                        class_name="why-card"
+                        class_name="why-card span-2"
                     ),
                     class_name="why-grid"
                 )
@@ -314,7 +302,6 @@ def gestures_page() -> rx.Component:
         rx.el.main(
             rx.el.section(
                 rx.el.a("← Back to Homepage", href="/", class_name="back-btn"),
-                rx.el.div("Gesture Dictionary", class_name="eyebrow"),
                 rx.el.h2("One hand, eight controls."),
                 rx.el.p("Each landmark relationship — the distance and position between fingertips — is translated into a distinct system-level action. Customize settings inside Project.py.", class_name="lede"),
                 
@@ -401,7 +388,6 @@ def demo_page() -> rx.Component:
         rx.el.main(
             rx.el.section(
                 rx.el.a("← Back to Homepage", href="/", class_name="back-btn"),
-                rx.el.div("Live Demo", class_name="eyebrow"),
                 rx.el.h2("Webcam hand tracking."),
                 rx.el.p("This runs real-time on-device landmark recognition using WebAssembly. Allow camera permissions, point with your index finger inside the camera viewport, and pinch your thumb and index together to click.", class_name="lede"),
                 
@@ -537,20 +523,107 @@ def install_page() -> rx.Component:
         rx.el.main(
             rx.el.section(
                 rx.el.a("← Back to Homepage", href="/", class_name="back-btn"),
-                rx.el.div("Get Started", class_name="eyebrow"),
                 rx.el.h2("Run native Gescon."),
                 rx.el.p("The desktop utility controls your actual OS cursor. Clone the source repository, setup a virtual env, install requirements, and execute the python script.", class_name="lede"),
                 
                 rx.el.div(
                     rx.el.span("# clone and enter the project", class_name="c-muted"), rx.el.br(),
-                    rx.el.span("git clone", class_name="c-text"), " https://github.com/sarthak-allawadhi/Gescon.git", rx.el.br(),
-                    rx.el.span("cd", class_name="c-text"), " Gescon", rx.el.br(), rx.el.br(),
-                    rx.el.span("# set up environment", class_name="c-muted"), rx.el.br(),
-                    rx.el.span("python -m venv venv && venv\\Scripts\\activate", class_name="c-text"), rx.el.br(),
-                    rx.el.span("pip install -r requirements.txt", class_name="c-text"), rx.el.br(), rx.el.br(),
-                    rx.el.span("# run it", class_name="c-muted"), rx.el.br(),
-                    rx.el.span("python", class_name="c-text"), " Project.py",
+                    rx.el.span("git clone", class_name="c-text"), " https://github.com/SilentShadowDev/Gescon.git", rx.el.br(),
+                    rx.el.span("cd", class_name="c-text"), " Gescon",
                     class_name="code-block"
+                ),
+                rx.el.div(
+                    rx.el.p(
+                        "View the repository on GitHub: ",
+                        rx.el.a(
+                            "https://github.com/SilentShadowDev/Gescon/tree/main",
+                            href="https://github.com/SilentShadowDev/Gescon/tree/main",
+                            target="_blank",
+                            style={"color": "var(--cyan)", "textDecoration": "underline", "fontWeight": "500"}
+                        )
+                    ),
+                    rx.el.p(
+                        "Note: A detailed installation guide, prerequisites, and system troubleshooting are documented in the repository's README.md file.",
+                        style={"marginTop": "8px", "color": "var(--muted)"}
+                    ),
+                    style={"marginTop": "28px", "fontSize": "14.5px", "lineHeight": "1.6"}
+                )
+            )
+        ),
+        footer_section(),
+        rx.script(src="/main.js"),
+        class_name=State.theme
+    )
+
+
+def roadmap_page() -> rx.Component:
+    """Roadmap and Vision Page showing current capabilities and future aspirations."""
+    return rx.el.div(
+        rx.el.div(class_name="grid-bg"),
+        header_section(),
+        rx.el.main(
+            rx.el.section(
+                rx.el.a("← Back to Homepage", href="/", class_name="back-btn"),
+                rx.el.h2("Vision & Roadmap"),
+                rx.el.p("Explore the current features of Gescon and our aspirations for the next generations of touchless interface systems.", class_name="lede"),
+                
+                rx.el.div(
+                    # Left column: Current Capabilities
+                    rx.el.div(
+                        rx.el.h3("Current Capabilities", style={"fontFamily": "var(--disp)", "fontSize": "22px", "marginBottom": "20px", "color": "var(--cyan)", "fontWeight": "600"}),
+                        rx.el.div(
+                            rx.el.div(
+                                rx.el.span("🎯", class_name="glyph"),
+                                rx.el.div("Precision Cursor Control", class_name="gname"),
+                                rx.el.div("Horizontal mirroring, screen bounds calibration, and Exponential Moving Average smoothing algorithms.", class_name="gdesc"),
+                                class_name="gcard",
+                                style={"marginBottom": "16px"}
+                            ),
+                            rx.el.div(
+                                rx.el.span("🤏", class_name="glyph"),
+                                rx.el.div("Gestures & Clicking", class_name="gname"),
+                                rx.el.div("Supports single click pinch, double-pinch, drag and drop, scrolling, and screenshots.", class_name="gdesc"),
+                                class_name="gcard",
+                                style={"marginBottom": "16px"}
+                            ),
+                            rx.el.div(
+                                rx.el.span("⌨️", class_name="glyph"),
+                                rx.el.div("Virtual Keyboard Input", class_name="gname"),
+                                rx.el.div("Gesture signature mapping enabling touchless key typing (e.g. typing characters by releasing specific curled fingers).", class_name="gdesc"),
+                                class_name="gcard"
+                            ),
+                        ),
+                        style={"flex": "1", "minWidth": "280px"}
+                    ),
+                    
+                    # Right column: Future Aspirations
+                    rx.el.div(
+                        rx.el.h3("Future Aspirations", style={"fontFamily": "var(--disp)", "fontSize": "22px", "marginBottom": "20px", "color": "var(--amber)", "fontWeight": "600"}),
+                        rx.el.div(
+                            rx.el.div(
+                                rx.el.span("⚙️", class_name="glyph"),
+                                rx.el.div("Visual Customization Engine", class_name="gname"),
+                                rx.el.div("Planned web dashboard allowing users to record dynamic gesture profiles and map them to custom macros and apps.", class_name="gdesc"),
+                                class_name="gcard",
+                                style={"marginBottom": "16px"}
+                            ),
+                            rx.el.div(
+                                rx.el.span("🧠", class_name="glyph"),
+                                rx.el.div("Deep Learning Models", class_name="gname"),
+                                rx.el.div("Transitioning from threshold angles to lightweight neural networks to recognize sequential, continuous hand shapes.", class_name="gdesc"),
+                                class_name="gcard",
+                                style={"marginBottom": "16px"}
+                            ),
+                            rx.el.div(
+                                rx.el.span("👐", class_name="glyph"),
+                                rx.el.div("Two-Handed Interactions", class_name="gname"),
+                                rx.el.div("Expanding recognition targets to multiple hands for natural zooming, scaling, rotation, and complex gaming controls.", class_name="gdesc"),
+                                class_name="gcard"
+                            ),
+                        ),
+                        style={"flex": "1", "minWidth": "280px"}
+                    ),
+                    style={"display": "flex", "gap": "32px", "marginTop": "48px", "flexWrap": "wrap"}
                 )
             )
         ),
@@ -571,3 +644,4 @@ app.add_page(index, route="/")
 app.add_page(gestures_page, route="/gestures")
 app.add_page(demo_page, route="/demo")
 app.add_page(install_page, route="/install")
+app.add_page(roadmap_page, route="/roadmap")
