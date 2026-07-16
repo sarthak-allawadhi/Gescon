@@ -12,4 +12,7 @@
   <url>
     <loc>http://localhost:3000/install</loc>
   </url>
+  <url>
+    <loc>http://localhost:3000/roadmap</loc>
+  </url>
 </urlset>
