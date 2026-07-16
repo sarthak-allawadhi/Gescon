@@ -442,40 +442,22 @@ def demo_page() -> rx.Component:
                                 # Native Desktop OS Control Center
                                 rx.el.div(
                                     rx.el.div(
-                                        rx.el.div(
-                                            rx.el.div("Desktop OS Control", class_name="card-title"),
-                                            rx.cond(
-                                                State.desktop_control_active,
-                                                rx.el.span(
-                                                    rx.el.span(class_name="badge-dot"),
-                                                    "ACTIVE (OS Control)",
-                                                    class_name="status-badge active"
-                                                ),
-                                                rx.el.span(
-                                                    rx.el.span(class_name="badge-dot"),
-                                                    "DISCONNECTED",
-                                                    class_name="status-badge"
-                                                )
+                                        rx.el.div("Desktop OS Control", class_name="card-title"),
+                                        rx.cond(
+                                            State.desktop_control_active,
+                                            rx.el.span(
+                                                rx.el.span(class_name="badge-dot"),
+                                                "ACTIVE (OS Control)",
+                                                class_name="status-badge active"
                                             ),
-                                            class_name="control-status-box",
-                                            style={"borderBottom": "1px solid var(--line)", "paddingBottom": "16px", "marginBottom": "16px"}
+                                            rx.el.span(
+                                                rx.el.span(class_name="badge-dot"),
+                                                "DISCONNECTED",
+                                                class_name="status-badge"
+                                            )
                                         ),
-                                        rx.el.div(
-                                            rx.el.p("Control your actual operating system cursor using the native Python engine. This launches the computer vision tracking process on your machine, opening the OpenCV tracking monitor window."),
-                                            rx.el.p("To configure gesture action mappings or threshold ratios, adjust settings inside Project.py and util.py."),
-                                            rx.el.p(
-                                                rx.el.span("🔌 ", style={"marginRight": "4px"}),
-                                                rx.el.b("Local Backend Required: "),
-                                                "This web interface connects to http://localhost:8000. Ensure you have the Python backend running locally to launch desktop control."
-                                            ),
-                                            rx.el.p(
-                                                rx.el.span("⚠️ ", style={"marginRight": "4px"}),
-                                                rx.el.b("Safety Fail-Safe: "),
-                                                "Move your hand to the top-left corner of the monitor screen at any time to trigger an emergency stop."
-                                            ),
-                                            class_name="control-body"
-                                        ),
-                                        class_name="control-header"
+                                        class_name="control-status-box",
+                                        style={"borderBottom": "1px solid var(--line)", "paddingBottom": "16px", "marginBottom": "16px"}
                                     ),
                                     rx.el.div(
                                         rx.cond(
@@ -494,7 +476,7 @@ def demo_page() -> rx.Component:
                                             )
                                         ),
                                         class_name="control-actions",
-                                        style={"marginTop": "24px"}
+                                        style={"marginTop": "12px"}
                                     ),
                                     class_name="control-center",
                                     style={"padding": "24px", "borderRadius": "10px", "border": "1px solid var(--line)", "background": "var(--panel-2)", "boxShadow": "none", "minHeight": "auto"}
